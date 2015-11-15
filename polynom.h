@@ -31,9 +31,10 @@ namespace NPolynom {
             TPolynom& operator= (const TPolynom&);
 
             // 2 Перегрузка операторов +, -, *
-            TPolynom operator+(const TPolynom& rhs) {
-                *this += rhs;
-                return *this;
+            TPolynom operator+(const TPolynom& rhs) const {
+                TPolynom poly(*this);
+                poly += rhs;
+                return poly;
             }
             TPolynom& operator+=(const TPolynom& rhs) {
                 const int _rhs_degr = rhs.Degree();
@@ -44,34 +45,37 @@ namespace NPolynom {
                 for (int ix = 0; ix <= _rhs_degr; ++ix) {
                     this->data[ix] += rhs.data[ix];
                 }
-                this->_validate_degree(_degr);
+                this->_validate_degree_after_operation(_degr);
                 return *this;
             }
             
-            TPolynom operator+(const T& rhs) {
-                *this += rhs;
-                return *this;
+            TPolynom operator+(const T& rhs) const {
+                TPolynom poly(*this);
+                poly += rhs;
+                return poly;
             }
             TPolynom& operator+=(const T& rhs) {
                 this->data[0] += rhs;
-                this->_validate_degree(std::max(0, this->Degree()));
+                this->_validate_degree_after_operation(std::max(0, this->Degree()));
                 return *this;
             }
             
-            TPolynom operator-(const T& rhs) {
-                *this -= rhs;
-                return *this;
+            TPolynom operator-(const T& rhs) const {
+                TPolynom poly(*this);
+                poly -= rhs;
+                return poly;
             }
             TPolynom& operator-=(const T& rhs) {
                 this->data[0] -= rhs;
-                this->_validate_degree(std::max(0, this->Degree()));
+                this->_validate_degree_after_operation(std::max(0, this->Degree()));
                 return *this;
             }
 
 
-            TPolynom operator-(const TPolynom& rhs) {
-                *this -= rhs;
-                return *this;
+            TPolynom operator-(const TPolynom& rhs) const {
+                TPolynom poly(*this);
+                poly -= rhs;
+                return poly;
             }
             TPolynom& operator-=(const TPolynom& rhs) {
                 const int _rhs_degr = rhs.Degree();
@@ -82,7 +86,7 @@ namespace NPolynom {
                 for (int ix = 0; ix <= _rhs_degr; ++ix) {
                     this->data[ix] -= rhs.data[ix];
                 }
-                this->_validate_degree(_degr);
+                this->_validate_degree_after_operation(_degr);
                 return *this;
             }
 
@@ -132,9 +136,10 @@ namespace NPolynom {
             int _degree = 0;
             int _accessed_index = -2;
 
-            void _validate_degree(int degr_max) {
+            void _validate_degree_after_operation(int degr_max) {
                 const T _nul = T();
-                if (data[degr_max] == _nul) {
+                cout << "validation" << degr_max << endl;
+                if (data[degr_max] == T()) {
                     int _degr = degr_max - 1;
                     for (int ix = degr_max - 1; ix >= 0; --ix) {
                         if (data[ix] == _nul) {
@@ -160,6 +165,7 @@ NPolynom::TPolynom<T>::TPolynom(T coeff) {
         _degree = -1;
     }
 }
+
 // конструктор инициализации
 template <typename T>
 NPolynom::TPolynom<T>::TPolynom (T *array, size_t array_size) {
@@ -172,14 +178,13 @@ NPolynom::TPolynom<T>::TPolynom (T *array, size_t array_size) {
     }
     --_degree;
 }
+
 // конструктор копирования
 template <typename T>
-NPolynom::TPolynom<T>::TPolynom (const TPolynom &rhs) {
-    size_t _size = rhs.data.size();
-    // инициализация элементов массива
-    for (size_t ix = 0; ix < _size; ++ix) {
-        data.push_back(rhs.data[ix]);
-    }
+NPolynom::TPolynom<T>::TPolynom (const TPolynom &rhs)
+    : data(rhs.data)
+    , _degree(rhs._degree)
+    , _accessed_index(rhs._accessed_index) {
 }
 
 // 1 операции сравнения: #2b
@@ -205,11 +210,10 @@ bool NPolynom::TPolynom<T>::operator!=(const TPolynom& rhs) const {
 // 4 перегрузка операции [ ]
 template <typename T>
 T& NPolynom::TPolynom<T>::operator[] (int index) {
-    _degree = Degree(); // validates degree before access;
+    _degree = Degree();
     _accessed_index = index;
     if (data.size() < static_cast<size_t>(index + 1)) {
         data.resize(index + 1);
     }
     return data[index];
 }
-

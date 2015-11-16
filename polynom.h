@@ -28,8 +28,18 @@ namespace NPolynom {
             bool operator!= (const TPolynom& rhs) const;
 
             // операция присваивания:
-            TPolynom& operator= (const TPolynom&) {
-                
+            TPolynom& operator= (const TPolynom& rhs) {
+                if (rhs == *this) {
+                    return *this;
+                }
+                data = rhs.data;
+                _degree = rhs._degree;
+                _accessed_index = rhs._accessed_index;
+                return *this;
+            }
+            
+            TPolynom& operator= (const T& rhs) {
+                return *this = TPolynom(rhs);
             }
 
             // 2 Перегрузка операторов +, -, *
@@ -93,12 +103,44 @@ namespace NPolynom {
             }
 
             TPolynom operator*(const TPolynom& rhs) {
-                TPolynom poly(*this);
-                poly *= rhs;
+                TPolynom poly;
+                int _degr = std::max(-1, this->Degree() + rhs.Degree());
+                for (int curr = 0; curr <= _degr; ++curr) {
+                    for (int ix = 0; ix <= curr; ++ix) {
+                        poly[curr] += (*this)[ix] * rhs[curr - ix];
+                    }
+                    if (poly[curr] != _nul) {
+                        poly._degree = curr;
+                    }
+                }
                 return poly;
             }
+            
             TPolynom& operator*=(const TPolynom& rhs) {
-                
+                TPolynom prod(*this * rhs);
+                *this = prod;
+                return *this;
+            }
+
+            TPolynom operator*(const T& _rhs) {
+                TPolynom poly;
+                TPolynom rhs(_rhs);
+                int _degr = std::max(-1, this->Degree() + rhs.Degree());
+                for (int curr = 0; curr <= _degr; ++curr) {
+                    for (int ix = 0; ix <= curr; ++ix) {
+                        poly[curr] += (*this)[ix] * rhs[curr - ix];
+                    }
+                    if (poly[curr] != _nul) {
+                        poly._degree = curr;
+                    }
+                }
+                return poly;
+            }
+
+            TPolynom& operator*=(const T& rhs) {
+                TPolynom prod(*this * rhs);
+                *this = prod;
+                return *this;
             }
 
             // 3 функция Degree()
@@ -106,12 +148,12 @@ namespace NPolynom {
                 if (_accessed_index < _degree) {
                     return _degree;
                 } else if (_accessed_index > _degree) {
-                    return (data[_accessed_index] == T()) ? _degree : _accessed_index;
+                    return (data[_accessed_index] == _nul) ? _degree : _accessed_index;
                 } else {
-                    if (data[_accessed_index] == T()) {
+                    if (data[_accessed_index] == _nul) {
                         int _degr = _degree - 1;
                         for (int ix = _accessed_index - 1; ix >= 0; --ix) {
-                            if (data[ix] == T()) {
+                            if (data[ix] == _nul) {
                                 --_degr;
                             }
                         }
@@ -144,9 +186,9 @@ namespace NPolynom {
             std::vector<T> data;
             int _degree = 0;
             int _accessed_index = -2;
+            const T _nul = T(); // for comparison
 
             void _validate_degree_after_operation(int degr_max) {
-                const T _nul = T();
                 if (data[degr_max] == _nul) {
                     int _degr = degr_max - 1;
                     for (int ix = degr_max - 1; ix >= 0; --ix) {
@@ -169,7 +211,7 @@ namespace NPolynom {
 template <typename T>
 NPolynom::TPolynom<T>::TPolynom(T coeff) {
     data.push_back(coeff);
-    if ( coeff == T() ) {
+    if ( coeff == _nul ) {
         _degree = -1;
     }
 }
@@ -177,7 +219,6 @@ NPolynom::TPolynom<T>::TPolynom(T coeff) {
 // конструктор инициализации
 template <typename T>
 NPolynom::TPolynom<T>::TPolynom (T *array, size_t array_size) {
-    const T _nul = T();
     for (size_t ix = 0; ix < array_size; ++ix) {
         data.push_back(array[ix]);
         if (array[ix] != _nul) {
@@ -193,6 +234,7 @@ NPolynom::TPolynom<T>::TPolynom (const TPolynom &rhs)
     : data(rhs.data)
     , _degree(rhs._degree)
     , _accessed_index(rhs._accessed_index) {
+    cout << data[2] << endl;
 }
 
 // 1 операции сравнения: #2b
@@ -219,7 +261,7 @@ bool NPolynom::TPolynom<T>::operator!=(const TPolynom& rhs) const {
 template <typename T>
 const T& NPolynom::TPolynom<T>::operator[] (const int index) const {
     if (data.size() <= static_cast<size_t>(index)) {
-        return T();
+        return _nul;
     }
     return data[index];
 }

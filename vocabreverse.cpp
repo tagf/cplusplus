@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
@@ -33,13 +34,15 @@ int main() {
         } while (cont);
     }
     
+    cout << lateng.size() << "\n";
+    
     for (auto lat : lateng) {
         cout << lat.first << " - ";
-        lat.second.sort();
+        sort(lat.second.begin(), lat.second.end());
         for (int i = 0; i + 1 < lat.second.size(); ++i) {
-            cout << lat.second[i] << ", "
+            cout << lat.second[i] << ", ";
         }
-        cout << lat.second[lat.second.size() - 1] << "\n"
+        cout << lat.second[lat.second.size() - 1] << "\n";
     }
     return 0;
 }

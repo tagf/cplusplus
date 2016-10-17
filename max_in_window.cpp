@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-
+#include <iterator>
 
 int ReadNumber(std::istream &in_stream = std::cin) {
     int number;
@@ -24,8 +24,9 @@ std::vector<int> ReadArray(std::istream &in_stream = std::cin) {
     return array;
 }
 
-class compare_greater {
-    bool operator() (int left, int right) {
+class CompareGreater {
+    public :
+    bool operator() (const int left, const int right) {
         return left > right;
     }
 };
@@ -37,7 +38,7 @@ int main() {
 
     std::vector<int> array = ReadArray();
     
-    // ýëåìåíòû äýêà äîëæíû èäòè â ïîðÿäêå íåâîçðàñòàíèÿ !
+    // non-increasing sequence of maximums in the right part
     std::vector<int> deque;
     int deque_start = 0;
     
@@ -47,16 +48,21 @@ int main() {
     int pos_left = 0;
     int pos_right = 0;
     
-    for (int i = 0; i < num_of_instructions; ++i) {
-        char instruction = ReadChar();
-        if (instruction == 'R') {
+    // first element
+    ReadChar();
+    deque.push_back(array[pos_right]);
+    std::cout << deque[deque_start] << std::endl;
+    
+    for (int i = 1; i < num_of_instructions; ++i) {
+        // char instruction = ReadChar();
+        if (ReadChar() == 'R') {
             ++pos_right;
             // update deque
             if (deque.back() >= array[pos_right]) {
                 deque.push_back(array[pos_right]);
             } else {
                 int insert_pos =
-                  std::upper_bound(deque.begin() + deque_start, deque.end(), compare_greater())
+                  std::upper_bound(deque.begin() + deque_start, deque.end(), array[pos_right], CompareGreater())
                   - deque.begin();
                 deque[insert_pos] = array[pos_right];
                 deque.resize(insert_pos - deque_start + 1);
@@ -67,8 +73,8 @@ int main() {
             }
             ++pos_left;
         }
-        
-        std::cout << deque[deque_start];
+        std::copy(deque.begin() + deque_start, deque.end(), std::ostream_iterator<int>(std::cout, " "));
+        std::cout << std::endl << deque[deque_start] << std::endl;
     }
 
     return 0;
